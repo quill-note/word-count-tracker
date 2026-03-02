@@ -589,8 +589,10 @@ function calcPeriodWritten(workId, periodType) {
   let startDate;
   if (periodType === 'week') {
     startDate = getWeekStart(todayStr());
-  } else {
+  } else if (periodType === 'month') {
     startDate = todayStr().slice(0,7) + '-01';
+  } else {
+    startDate = todayStr();
   }
 
   const periodLogs = wLogs.filter(l => l.date >= startDate);
@@ -750,17 +752,23 @@ function renderWorkDetail() {
       <button class="btn btn-danger" onclick="deleteWork('${w.id}')">削除</button>
     </div>`;
 
-  // 週間・月間サマリー
+  // 週間・月間・今日のサマリー
+  const todayWritten = calcPeriodWritten(w.id, 'today');
   if (wLogs.length >= 1) {
     html += `
     <div class="summary-cards">
       <div class="summary-card">
-        <div class="summary-card-label">今週の執筆量</div>
+        <div class="summary-card-label">今日</div>
+        <div class="summary-card-num">${todayWritten > 0 ? '+' : ''}${fmtNum(todayWritten)}</div>
+        <div class="summary-card-sub">文字</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">今週</div>
         <div class="summary-card-num">${weekWritten > 0 ? '+' : ''}${fmtNum(weekWritten)}</div>
         <div class="summary-card-sub">文字</div>
       </div>
       <div class="summary-card">
-        <div class="summary-card-label">今月の執筆量</div>
+        <div class="summary-card-label">今月</div>
         <div class="summary-card-num">${monthWritten > 0 ? '+' : ''}${fmtNum(monthWritten)}</div>
         <div class="summary-card-sub">文字</div>
       </div>
