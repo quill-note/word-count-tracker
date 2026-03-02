@@ -1,21 +1,12 @@
 {
-  "name": "文字数トラッカー",
-  "short_name": "文字数",
-  "description": "作品ごとの文字数を記録・比較・推移グラフで確認",
-  "start_url": "./index.html",
+  "name": "文字数カウント",
+  "short_name": "文字数カウント",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#fef7f6",
-  "theme_color": "#e07060",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "theme_color": "#e07060"
 }
