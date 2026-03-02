@@ -625,11 +625,21 @@ function render() {
     </div>`;
 
   const totalWorks = appData.works.length;
-  const totalLogs = appData.logs.filter(l=>!l.episodeId).length;
+  const grandTotal = appData.works.reduce((sum, w) => sum + getLatestChars(w.id), 0);
+  // 1日平均：全作品の全記録日数から計算
+  const allDatesSet = new Set(appData.logs.filter(l => !l.episodeId).map(l => l.date));
+  const dayCount = allDatesSet.size;
+  const totalWritten = appData.works.reduce((sum, w) => {
+    const wl = getWorkLogs(w.id);
+    if (wl.length < 2) return sum + (wl.length === 1 ? wl[0].totalChars : 0);
+    return sum + (wl[wl.length-1].totalChars - wl[0].totalChars);
+  }, 0);
+  const dailyAvg = dayCount > 1 ? Math.round(totalWritten / (dayCount - 1)) : 0;
   html += `
     <div class="stats-row">
       <div class="stat-item"><div class="stat-num">${totalWorks}</div><div class="stat-label">作品数</div></div>
-      <div class="stat-item"><div class="stat-num">${totalLogs}</div><div class="stat-label">記録数</div></div>
+      <div class="stat-item"><div class="stat-num">${fmtNum(grandTotal)}</div><div class="stat-label">総文字数</div></div>
+      <div class="stat-item"><div class="stat-num">${fmtNum(dailyAvg)}</div><div class="stat-label">1日平均</div></div>
     </div>`;
 
   html += '<div class="content">';
