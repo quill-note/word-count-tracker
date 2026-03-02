@@ -1067,31 +1067,43 @@ function openAddLogModal(workId) {
   if (!w) return;
 
   const latest = getLatestChars(workId);
-  const hint = latest > 0 ? `<div style="font-size:12px;color:var(--text3);margin-bottom:14px">現在の記録: ${fmtNum(latest)}文字</div>` : '';
+  const currentInfo = latest > 0 ? `<div style="font-size:12px;color:var(--text3);margin-bottom:14px">現在の累計: ${fmtNum(latest)}文字</div>` : '';
 
   openModal(`
     <div class="modal-title">文字数を記録</div>
     <label class="form-label">日付</label>
     <input class="form-input" type="date" id="f-log-date" value="${todayStr()}">
-    <label class="form-label">作品全体の文字数</label>
-    ${hint}
-    <input class="form-input" type="number" id="f-log-chars" placeholder="文字数を入力">
+    <label class="form-label">今回書いた文字数</label>
+    ${currentInfo}
+    <input class="form-input" type="number" id="f-log-chars" placeholder="今回書いた文字数" oninput="updateLogPreview(${latest})">
+    <div id="f-log-preview" style="font-size:12px;color:var(--text2);margin-top:-8px;margin-bottom:14px"></div>
     <div class="form-actions">
       <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
-      <button class="btn btn-primary" onclick="addLog('${workId}')">記録</button>
+      <button class="btn btn-primary" onclick="addLog('${workId}',${latest})">記録</button>
     </div>
   `);
   setTimeout(() => document.getElementById('f-log-chars')?.focus(), 100);
 }
 
-function addLog(workId) {
-  const date = document.getElementById('f-log-date')?.value || todayStr();
-  const totalChars = parseInt(document.getElementById('f-log-chars')?.value) || 0;
-  if (totalChars <= 0) { showToast('文字数を入力してください'); return; }
+function updateLogPreview(currentTotal) {
+  const val = parseInt(document.getElementById('f-log-chars')?.value) || 0;
+  const preview = document.getElementById('f-log-preview');
+  if (preview && val > 0) {
+    preview.textContent = '→ 累計 ' + fmtNum(currentTotal + val) + '文字になります';
+  } else if (preview) {
+    preview.textContent = '';
+  }
+}
 
-  appData.logs.push({ id: genId(), workId, date, totalChars, episodeId: null });
+function addLog(workId, currentTotal) {
+  const date = document.getElementById('f-log-date')?.value || todayStr();
+  const addedChars = parseInt(document.getElementById('f-log-chars')?.value) || 0;
+  if (addedChars <= 0) { showToast('文字数を入力してください'); return; }
+
+  const newTotal = currentTotal + addedChars;
+  appData.logs.push({ id: genId(), workId, date, totalChars: newTotal, episodeId: null });
   saveData(); closeModal(); render();
-  showToast('記録しました');
+  showToast('+' + fmtNum(addedChars) + '文字 → 累計' + fmtNum(newTotal) + '文字');
 }
 
 // ─── ログの編集 ───
