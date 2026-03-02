@@ -1,0 +1,16 @@
+{
+  "name": "文字数トラッカー",
+  "short_name": "文字数",
+  "description": "作品ごとの文字数を記録・比較・推移グラフで確認",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fef7f6",
+  "theme_color": "#e07060",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e07060'/><text x='50' y='62' font-size='50' text-anchor='middle' fill='white' font-family='sans-serif'>✍</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

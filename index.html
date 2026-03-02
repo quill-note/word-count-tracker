@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#e07060">
+<title>文字数トラッカー</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #e07060;
+  --primary-light: #fdf0ee;
+  --primary-mid: #f2ada4;
+  --primary-dark: #c4544a;
+  --primary-pale: #fff5f3;
+  --bg: #fef7f6;
+  --card: #ffffff;
+  --text: #3d2f2e;
+  --text2: #8a7170;
+  --text3: #bba8a6;
+  --border: #f0ddd9;
+  --success: #4a9e6e;
+  --success-bg: #eef8f2;
+  --success-border: #b8e0c8;
+  --warning: #c48a2a;
+  --warning-bg: #fef9eb;
+  --danger: #c44040;
+  --danger-bg: #fef2f2;
+  --tag-bg: #fdf0ee;
+  --tag-text: #c4544a;
+  --shadow: rgba(180,100,90,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: 'Zen Maru Gothic', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 500px;
+  margin: 0 auto;
+  overflow-x: hidden;
+  padding-bottom: 70px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px 10px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 6px var(--shadow);
+}
+.header-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-date {
+  font-size: 12px;
+  color: var(--text2);
+  background: var(--primary-light);
+  padding: 4px 10px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-add {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+.btn-add:hover { opacity: 0.85; }
+.btn-add:active { opacity: 0.7; }
+
+/* Summary stats */
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 14px 16px 10px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.stat-item { text-align: center; }
+.stat-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 2px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 52px;
+  z-index: 49;
+}
+.tab-btn {
+  flex: 1;
+  text-align: center;
+  padding: 11px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text3);
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  color: var(--primary);
+  font-weight: 700;
+  border-bottom-color: var(--primary);
+}
+
+/* Content area */
+.content { padding: 12px 16px; }
+
+/* Cards */
+.card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 6px var(--shadow);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.card:active { border-color: var(--primary-mid); }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.card-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+.card-chars {
+  text-align: right;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+.card-chars-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.card-chars-label {
+  font-size: 11px;
+  color: var(--text3);
+}
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.card-meta {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.badge-episodes { background: var(--tag-bg); color: var(--tag-text); border: 1px solid var(--primary-mid); }
+.badge-logs { background: #f5f0e6; color: #8d6e3f; border: 1px solid #e5d8c0; }
+.badge-completed { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+
+/* Tags */
+.tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+}
+
+/* Detail view */
+.detail-back {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0;
+  margin-bottom: 14px;
+  font-family: inherit;
+}
+.detail-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.detail-chars {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.detail-chars-label {
+  font-size: 13px;
+  color: var(--text2);
+  margin-left: 4px;
+}
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s;
+  border: none;
+}
+.btn:hover { opacity: 0.85; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-ghost { background: var(--card); color: var(--text2); border: 1.5px solid var(--border); }
+.btn-danger { background: var(--danger-bg); color: var(--danger); border: 1.5px solid #f0c0c0; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* Section titles */
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+
+/* Episode bars */
+.ep-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+.ep-info { flex: 1; }
+.ep-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.ep-bar-wrap {
+  margin-top: 6px;
+  height: 4px;
+  background: var(--bg);
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.ep-bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+.ep-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 14px;
+}
+.ep-chars { font-size: 14px; font-weight: 700; color: var(--text); }
+.ep-del {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 4px;
+}
+
+/* Log history */
+.log-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 12px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+.log-row:nth-child(odd) { background: var(--card); border: 1px solid var(--border); }
+.log-date { color: var(--text2); }
+.log-chars { font-weight: 600; color: var(--text); }
+
+/* Chart container */
+.chart-wrap {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 6px var(--shadow);
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.chart-canvas { width: 100%; }
+
+/* Compare bars */
+.compare-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.compare-name {
+  font-size: 12px;
+  color: var(--text);
+  width: 100px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.compare-bar-wrap {
+  flex: 1;
+  height: 22px;
+  background: var(--bg);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin: 0 10px;
+}
+.compare-bar {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.5s;
+}
+.compare-chars {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  width: 70px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(74,37,37,0.35);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 30px rgba(180,100,90,0.15);
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+.form-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  display: block;
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 14px;
+}
+.form-input:focus { border-color: var(--primary-mid); }
+.form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.ep-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.ep-input-label {
+  font-size: 13px;
+  color: var(--text);
+  width: 110px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ep-input {
+  flex: 1;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--text3);
+}
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 500px;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 100;
+  box-shadow: 0 -1px 6px var(--shadow);
+}
+.nav-item {
+  flex: 1;
+  text-align: center;
+  padding: 8px 0 6px;
+  cursor: pointer;
+  color: var(--text3);
+  font-size: 10px;
+  font-family: inherit;
+  background: none;
+  border: none;
+  transition: color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.nav-item.active { color: var(--primary); }
+.nav-item svg { width: 22px; height: 22px; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" id="modal-body"></div>
+</div>
+
+<script>
+// ─── Data ───
+const STORAGE_KEY = 'word-count-tracker';
+let appData = { works: [], logs: [] };
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) appData = JSON.parse(raw);
+  } catch(e) { console.error(e); }
+}
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+  } catch(e) { console.error(e); }
+}
+
+// ─── State ───
+let currentTab = 'works';
+let selectedWorkId = null;
+
+// ─── Utils ───
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function esc(s) { const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+function fmtNum(n) { return (n||0).toLocaleString('ja-JP'); }
+function fmtDate(d) { return new Date(d).toLocaleDateString('ja-JP',{month:'short',day:'numeric'}); }
+function todayStr() {
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function nowStr() {
+  const d=new Date();
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+const CHART_COLORS = ['#e07060','#4a9e6e','#c48a2a','#7c6db0','#e0927a','#5aada0','#d4a24a','#9a8cc0'];
+
+// ─── Render ───
+function render() {
+  const app = document.getElementById('app');
+
+  // Header
+  let html = `
+    <div class="header">
+      <div class="header-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        文字数トラッカー
+      </div>
+      <div class="header-right">
+        <div class="header-date">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          ${nowStr()}
+        </div>
+      </div>
+    </div>`;
+
+  // Stats
+  const totalWorks = appData.works.length;
+  const totalLogs = appData.logs.filter(l=>!l.episodeId).length;
+  html += `
+    <div class="stats-row">
+      <div class="stat-item"><div class="stat-num">${totalWorks}</div><div class="stat-label">作品数</div></div>
+      <div class="stat-item"><div class="stat-num">${totalLogs}</div><div class="stat-label">記録数</div></div>
+    </div>`;
+
+  // Content
+  html += '<div class="content">';
+  if (currentTab === 'works' && !selectedWorkId) {
+    html += renderWorkList();
+  } else if (currentTab === 'works' && selectedWorkId) {
+    html += renderWorkDetail();
+  } else if (currentTab === 'compare') {
+    html += renderCompare();
+  } else if (currentTab === 'timeline') {
+    html += renderTimeline();
+  } else if (currentTab === 'backup') {
+    html += renderBackup();
+  }
+  html += '</div>';
+
+  // Bottom nav
+  html += `
+    <div class="bottom-nav">
+      <button class="nav-item ${currentTab==='works'?'active':''}" onclick="switchTab('works')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        作品
+      </button>
+      <button class="nav-item ${currentTab==='compare'?'active':''}" onclick="switchTab('compare')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="9" width="7" height="12" rx="1"/></svg>
+        比較
+      </button>
+      <button class="nav-item ${currentTab==='timeline'?'active':''}" onclick="switchTab('timeline')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        推移
+      </button>
+      <button class="nav-item ${currentTab==='backup'?'active':''}" onclick="switchTab('backup')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        保存
+      </button>
+    </div>`;
+
+  app.innerHTML = html;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  selectedWorkId = null;
+  render();
+}
+
+// ─── Work List ───
+function renderWorkList() {
+  let html = '';
+  if (appData.works.length === 0) {
+    html += `<div class="empty">
+      <div style="font-size:14px;margin-bottom:8px">まだ作品がありません</div>
+      <div style="font-size:12px">下の「＋ 追加」ボタンから始めましょう</div>
+      <div style="margin-top:16px"><button class="btn btn-primary" onclick="openAddWorkModal()">＋ 作品を追加</button></div>
+    </div>`;
+    return html;
+  }
+
+  html += `<div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <button class="btn btn-primary btn-sm" onclick="openAddWorkModal()">＋ 追加</button>
+  </div>`;
+
+  appData.works.forEach(w => {
+    const wLogs = appData.logs.filter(l => l.workId === w.id && !l.episodeId);
+    const latest = wLogs.length > 0 ? wLogs[wLogs.length-1].totalChars : 0;
+    const epCount = (w.episodes||[]).length;
+
+    html += `<div class="card" onclick="selectWork('${w.id}')">
+      <div class="card-header">
+        <div class="card-name">${esc(w.title)}</div>
+        <div class="card-chars">
+          <div class="card-chars-num">${fmtNum(latest)}</div>
+          <div class="card-chars-label">文字</div>
+        </div>
+      </div>
+      <div class="card-tags">
+        ${epCount > 0 ? `<span class="badge badge-episodes">${epCount}話</span>` : ''}
+        ${wLogs.length > 0 ? `<span class="badge badge-logs">記録 ${wLogs.length}件</span>` : ''}
+      </div>
+    </div>`;
+  });
+  return html;
+}
+
+function selectWork(id) {
+  selectedWorkId = id;
+  render();
+}
+
+// ─── Work Detail ───
+function renderWorkDetail() {
+  const w = appData.works.find(x => x.id === selectedWorkId);
+  if (!w) return '';
+
+  const wLogs = appData.logs.filter(l => l.workId === w.id);
+  const totalLogs = wLogs.filter(l => !l.episodeId);
+  const latestTotal = totalLogs.length > 0 ? totalLogs[totalLogs.length-1].totalChars : 0;
+
+  const epLatest = {};
+  wLogs.forEach(l => { if (l.episodeId) epLatest[l.episodeId] = l.chars; });
+
+  let html = `
+    <button class="detail-back" onclick="selectedWorkId=null;render()">← 一覧に戻る</button>
+    <div class="detail-title">${esc(w.title)}</div>
+    <div style="margin-bottom:4px">
+      <span class="detail-chars">${fmtNum(latestTotal)}</span>
+      <span class="detail-chars-label">文字</span>
+    </div>
+    <div class="detail-actions">
+      <button class="btn btn-primary" onclick="openAddLogModal('${w.id}')">文字数を記録</button>
+      <button class="btn btn-ghost" onclick="openAddEpisodeModal('${w.id}')">＋ 話を追加</button>
+      <button class="btn btn-danger" onclick="deleteWork('${w.id}')">削除</button>
+    </div>`;
+
+  // Episodes
+  if (w.episodes && w.episodes.length > 0) {
+    html += '<div class="section-title">エピソード内訳</div>';
+    w.episodes.forEach(ep => {
+      const chars = epLatest[ep.id] || 0;
+      const pct = latestTotal > 0 ? (chars / latestTotal * 100) : 0;
+      html += `<div class="ep-card">
+        <div class="ep-info">
+          <div class="ep-name">${esc(ep.title)}</div>
+          <div class="ep-bar-wrap"><div class="ep-bar" style="width:${pct}%"></div></div>
+        </div>
+        <div class="ep-right">
+          <span class="ep-chars">${fmtNum(chars)}</span>
+          <button class="ep-del" onclick="deleteEpisode('${w.id}','${ep.id}')">×</button>
+        </div>
+      </div>`;
+    });
+  }
+
+  // Chart
+  if (totalLogs.length > 1) {
+    html += '<div class="section-title">文字数推移</div>';
+    html += '<div class="chart-wrap"><canvas id="detailChart" class="chart-canvas" height="180"></canvas></div>';
+  }
+
+  // Log history
+  if (wLogs.length > 0) {
+    html += '<div class="section-title">記録履歴</div>';
+    [...wLogs].reverse().slice(0,30).forEach((l,i) => {
+      const ep = l.episodeId ? (w.episodes||[]).find(e => e.id === l.episodeId) : null;
+      html += `<div class="log-row">
+        <span class="log-date">${fmtDate(l.date)}</span>
+        ${ep ? `<span class="tag">${esc(ep.title)}</span>` : ''}
+        <span class="log-chars">${fmtNum(l.totalChars || l.chars)}文字</span>
+      </div>`;
+    });
+  }
+
+  // Draw chart after render
+  setTimeout(() => drawDetailChart(totalLogs), 50);
+
+  return html;
+}
+
+// ─── Compare ───
+function renderCompare() {
+  const items = appData.works.map(w => {
+    const wl = appData.logs.filter(l => l.workId === w.id && !l.episodeId);
+    const latest = wl.length > 0 ? wl[wl.length-1].totalChars : 0;
+    return { title: w.title, chars: latest };
+  }).sort((a,b) => b.chars - a.chars);
+
+  if (items.length === 0) return '<div class="empty">比較する作品がありません</div>';
+
+  const maxChars = Math.max(...items.map(i => i.chars), 1);
+  let html = '<div class="section-title">作品別文字数</div>';
+
+  items.forEach((item, i) => {
+    const pct = (item.chars / maxChars * 100);
+    const color = CHART_COLORS[i % CHART_COLORS.length];
+    html += `<div class="compare-item">
+      <div class="compare-name">${esc(item.title)}</div>
+      <div class="compare-bar-wrap"><div class="compare-bar" style="width:${pct}%;background:${color}"></div></div>
+      <div class="compare-chars">${fmtNum(item.chars)}</div>
+    </div>`;
+  });
+
+  return html;
+}
+
+// ─── Timeline ───
+function renderTimeline() {
+  const allDates = [...new Set(appData.logs.filter(l => !l.episodeId).map(l => l.date))].sort();
+  if (allDates.length === 0) return '<div class="empty">推移データがまだありません</div>';
+
+  let html = '<div class="section-title">全作品の文字数推移</div>';
+  html += '<div class="chart-wrap"><canvas id="timelineChart" class="chart-canvas" height="220"></canvas></div>';
+
+  // Legend
+  html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">';
+  appData.works.forEach((w,i) => {
+    const color = CHART_COLORS[i % CHART_COLORS.length];
+    html += `<div style="display:flex;align-items:center;gap:4px;font-size:12px">
+      <div style="width:10px;height:10px;border-radius:3px;background:${color}"></div>
+      ${esc(w.title)}
+    </div>`;
+  });
+  html += '</div>';
+
+  setTimeout(() => drawTimelineChart(allDates), 50);
+  return html;
+}
+
+// ─── Backup ───
+function renderBackup() {
+  return `
+    <div class="section-title" style="margin-top:8px">データ管理</div>
+    <div style="margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.6">
+      データはこの端末のブラウザに保存されます。<br>
+      機種変更やキャッシュクリア時に備えて、こまめにバックアップを取ることをおすすめします。
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="exportData()">バックアップを保存</button>
+    <button class="btn btn-ghost" style="width:100%;margin-bottom:20px" onclick="document.getElementById('importFile').click()">バックアップを読み込み</button>
+    <input type="file" id="importFile" accept=".json,.txt" style="display:none" onchange="importData(event)">
+
+    <div style="background:var(--primary-pale);border:1.5px solid var(--primary-mid);border-radius:12px;padding:14px;margin-top:10px">
+      <div style="font-size:14px;font-weight:700;color:var(--primary);margin-bottom:8px">ホーム画面に追加</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.5">
+        <b>iPhone：</b>共有ボタン → 「ホーム画面に追加」<br>
+        <b>Android：</b>メニュー → 「ホーム画面に追加」
+      </div>
+    </div>`;
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `word-count-tracker-backup-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('バックアップを保存しました');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.works && imported.logs) {
+        appData = imported;
+        saveData();
+        render();
+        showToast('データを読み込みました');
+      } else {
+        showToast('形式が正しくありません');
+      }
+    } catch(err) {
+      showToast('読み込みに失敗しました');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ─── Chart Drawing (Canvas) ───
+function drawDetailChart(logs) {
+  const canvas = document.getElementById('detailChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.clientWidth;
+  const H = canvas.clientHeight;
+  canvas.width = W * 2; canvas.height = H * 2;
+  ctx.scale(2, 2);
+
+  const pad = { top: 10, right: 16, bottom: 30, left: 44 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  const vals = logs.map(l => l.totalChars);
+  const maxVal = Math.max(...vals, 1);
+
+  ctx.strokeStyle = '#f0ddd9';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + ch - (ch * i / 4);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+    ctx.fillStyle = '#bba8a6'; ctx.font = '10px Zen Maru Gothic';
+    ctx.fillText(`${Math.round(maxVal * i / 4 / 1000)}k`, 4, y + 3);
+  }
+
+  // Line
+  ctx.strokeStyle = '#e07060';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  logs.forEach((l, i) => {
+    const x = pad.left + (cw * i / Math.max(logs.length - 1, 1));
+    const y = pad.top + ch - (ch * l.totalChars / maxVal);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Dots
+  logs.forEach((l, i) => {
+    const x = pad.left + (cw * i / Math.max(logs.length - 1, 1));
+    const y = pad.top + ch - (ch * l.totalChars / maxVal);
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#e07060';
+    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fill();
+  });
+
+  // X labels
+  ctx.fillStyle = '#bba8a6'; ctx.font = '10px Zen Maru Gothic'; ctx.textAlign = 'center';
+  const step = Math.max(1, Math.floor(logs.length / 6));
+  logs.forEach((l, i) => {
+    if (i % step === 0 || i === logs.length - 1) {
+      const x = pad.left + (cw * i / Math.max(logs.length - 1, 1));
+      ctx.fillText(fmtDate(l.date), x, H - 6);
+    }
+  });
+}
+
+function drawTimelineChart(allDates) {
+  const canvas = document.getElementById('timelineChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.clientWidth;
+  const H = canvas.clientHeight;
+  canvas.width = W * 2; canvas.height = H * 2;
+  ctx.scale(2, 2);
+
+  const pad = { top: 10, right: 16, bottom: 30, left: 44 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  // Build data
+  const series = appData.works.map(w => {
+    return allDates.map(date => {
+      const wl = appData.logs.filter(l => l.workId === w.id && !l.episodeId && l.date <= date);
+      return wl.length > 0 ? wl[wl.length-1].totalChars : null;
+    });
+  });
+
+  const allVals = series.flat().filter(v => v !== null);
+  const maxVal = Math.max(...allVals, 1);
+
+  // Grid
+  ctx.strokeStyle = '#f0ddd9'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + ch - (ch * i / 4);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+    ctx.fillStyle = '#bba8a6'; ctx.font = '10px Zen Maru Gothic'; ctx.textAlign = 'left';
+    ctx.fillText(`${Math.round(maxVal * i / 4 / 1000)}k`, 4, y + 3);
+  }
+
+  // Lines
+  series.forEach((s, si) => {
+    const color = CHART_COLORS[si % CHART_COLORS.length];
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    let started = false;
+    s.forEach((v, i) => {
+      if (v === null) return;
+      const x = pad.left + (cw * i / Math.max(allDates.length - 1, 1));
+      const y = pad.top + ch - (ch * v / maxVal);
+      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Dots
+    s.forEach((v, i) => {
+      if (v === null) return;
+      const x = pad.left + (cw * i / Math.max(allDates.length - 1, 1));
+      const y = pad.top + ch - (ch * v / maxVal);
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI*2); ctx.fill();
+    });
+  });
+
+  // X labels
+  ctx.fillStyle = '#bba8a6'; ctx.font = '10px Zen Maru Gothic'; ctx.textAlign = 'center';
+  const step = Math.max(1, Math.floor(allDates.length / 6));
+  allDates.forEach((d, i) => {
+    if (i % step === 0 || i === allDates.length - 1) {
+      const x = pad.left + (cw * i / Math.max(allDates.length - 1, 1));
+      ctx.fillText(fmtDate(d), x, H - 6);
+    }
+  });
+}
+
+// ─── Modals ───
+function openModal(html) {
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+function openAddWorkModal() {
+  openModal(`
+    <div class="modal-title">作品を追加</div>
+    <label class="form-label">作品タイトル</label>
+    <input class="form-input" id="f-work-title" placeholder="例：ショコラとレモネード">
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="addWork()">追加</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('f-work-title')?.focus(), 100);
+}
+
+function addWork() {
+  const title = document.getElementById('f-work-title')?.value?.trim();
+  if (!title) return;
+  appData.works.push({ id: genId(), title, episodes: [], createdAt: todayStr() });
+  saveData(); closeModal(); render();
+  showToast('作品を追加しました');
+}
+
+function deleteWork(id) {
+  if (!confirm('この作品を削除しますか？記録もすべて削除されます。')) return;
+  appData.works = appData.works.filter(w => w.id !== id);
+  appData.logs = appData.logs.filter(l => l.workId !== id);
+  saveData();
+  if (selectedWorkId === id) selectedWorkId = null;
+  render();
+  showToast('削除しました');
+}
+
+function openAddEpisodeModal(workId) {
+  openModal(`
+    <div class="modal-title">話を追加</div>
+    <label class="form-label">話のタイトル</label>
+    <input class="form-input" id="f-ep-title" placeholder="例：第1話 出会い">
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="addEpisode('${workId}')">追加</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('f-ep-title')?.focus(), 100);
+}
+
+function addEpisode(workId) {
+  const title = document.getElementById('f-ep-title')?.value?.trim();
+  if (!title) return;
+  const w = appData.works.find(x => x.id === workId);
+  if (!w) return;
+  if (!w.episodes) w.episodes = [];
+  w.episodes.push({ id: genId(), title });
+  saveData(); closeModal(); render();
+  showToast('話を追加しました');
+}
+
+function deleteEpisode(workId, epId) {
+  if (!confirm('この話を削除しますか？')) return;
+  const w = appData.works.find(x => x.id === workId);
+  if (w) w.episodes = (w.episodes||[]).filter(e => e.id !== epId);
+  appData.logs = appData.logs.filter(l => l.episodeId !== epId);
+  saveData(); render();
+}
+
+function openAddLogModal(workId) {
+  const w = appData.works.find(x => x.id === workId);
+  if (!w) return;
+
+  let epInputs = '';
+  if (w.episodes && w.episodes.length > 0) {
+    epInputs = `<label class="form-label" style="margin-top:4px">各話の文字数（任意）</label>`;
+    w.episodes.forEach(ep => {
+      epInputs += `<div class="ep-input-row">
+        <span class="ep-input-label">${esc(ep.title)}</span>
+        <input class="ep-input" type="number" id="f-ep-${ep.id}" placeholder="文字数">
+      </div>`;
+    });
+  }
+
+  openModal(`
+    <div class="modal-title">文字数を記録</div>
+    <label class="form-label">日付</label>
+    <input class="form-input" type="date" id="f-log-date" value="${todayStr()}">
+    <label class="form-label">作品全体の文字数</label>
+    <input class="form-input" type="number" id="f-log-chars" placeholder="例：12500">
+    ${epInputs}
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="addLog('${workId}')">記録</button>
+    </div>
+  `);
+}
+
+function addLog(workId) {
+  const w = appData.works.find(x => x.id === workId);
+  if (!w) return;
+  const date = document.getElementById('f-log-date')?.value || todayStr();
+  const totalChars = parseInt(document.getElementById('f-log-chars')?.value) || 0;
+  if (totalChars <= 0) { showToast('文字数を入力してください'); return; }
+
+  appData.logs.push({ workId, date, totalChars, episodeId: null });
+
+  // Episode logs
+  (w.episodes||[]).forEach(ep => {
+    const val = parseInt(document.getElementById(`f-ep-${ep.id}`)?.value) || 0;
+    if (val > 0) {
+      appData.logs.push({ workId, date, chars: val, episodeId: ep.id });
+    }
+  });
+
+  saveData(); closeModal(); render();
+  showToast('記録しました');
+}
+
+// ─── Service Worker ───
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ─── Init ───
+loadData();
+render();
+</script>
+</body>
+</html>
