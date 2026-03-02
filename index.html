@@ -749,6 +749,7 @@ function renderWorkDetail() {
     ${lastDiff !== 0 ? `<div class="card-diff ${lastDiff > 0 ? 'plus' : 'minus'}">前回比 ${lastDiff > 0 ? '+' : ''}${fmtNum(lastDiff)}文字</div>` : ''}
     <div class="detail-actions">
       <button class="btn btn-primary" onclick="openAddLogModal('${w.id}')">文字数を記録</button>
+      <button class="btn btn-ghost" onclick="openEditWorkModal('${w.id}')">作品名を編集</button>
       <button class="btn btn-danger" onclick="deleteWork('${w.id}')">削除</button>
     </div>`;
 
@@ -1052,6 +1053,34 @@ function addWork() {
   showToast('作品を追加しました');
 }
 
+function openEditWorkModal(workId) {
+  const w = appData.works.find(x => x.id === workId);
+  if (!w) return;
+  openModal(`
+    <div class="modal-title">作品名を編集</div>
+    <label class="form-label">作品タイトル</label>
+    <input class="form-input" id="f-edit-work-title" value="${esc(w.title)}">
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveEditWork('${workId}')">保存</button>
+    </div>
+  `);
+  setTimeout(() => {
+    const inp = document.getElementById('f-edit-work-title');
+    if (inp) { inp.focus(); inp.select(); }
+  }, 100);
+}
+
+function saveEditWork(workId) {
+  const title = document.getElementById('f-edit-work-title')?.value?.trim();
+  if (!title) return;
+  const w = appData.works.find(x => x.id === workId);
+  if (!w) return;
+  w.title = title;
+  saveData(); closeModal(); render();
+  showToast('作品名を更新しました');
+}
+
 function deleteWork(id) {
   if (!confirm('この作品を削除しますか？記録もすべて削除されます。')) return;
   appData.works = appData.works.filter(w => w.id !== id);
@@ -1067,41 +1096,41 @@ function openAddLogModal(workId) {
   if (!w) return;
 
   const latest = getLatestChars(workId);
-  const currentInfo = latest > 0 ? `<div style="font-size:12px;color:var(--text3);margin-bottom:14px">現在の累計: ${fmtNum(latest)}文字</div>` : '';
+  const currentInfo = latest > 0 ? '<div style="font-size:13px;color:var(--text);margin-bottom:14px;font-weight:600">現在の累計: ' + fmtNum(latest) + '文字</div>' : '';
 
-  openModal(`
-    <div class="modal-title">文字数を記録</div>
-    <label class="form-label">日付</label>
-    <input class="form-input" type="date" id="f-log-date" value="${todayStr()}">
-    <label class="form-label">今回書いた文字数</label>
-    ${currentInfo}
-    <input class="form-input" type="number" id="f-log-chars" placeholder="今回書いた文字数" oninput="updateLogPreview(${latest})">
-    <div id="f-log-preview" style="font-size:12px;color:var(--text2);margin-top:-8px;margin-bottom:14px"></div>
-    <div class="form-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
-      <button class="btn btn-primary" onclick="addLog('${workId}',${latest})">記録</button>
-    </div>
-  `);
-  setTimeout(() => document.getElementById('f-log-chars')?.focus(), 100);
+  openModal(
+    '<div class="modal-title">文字数を記録</div>' +
+    '<label class="form-label">日付</label>' +
+    '<input class="form-input" type="date" id="f-log-date" value="' + todayStr() + '">' +
+    '<label class="form-label">今回書いた文字数</label>' +
+    currentInfo +
+    '<input class="form-input" type="number" id="f-log-chars" placeholder="今回書いた文字数" oninput="updateLogPreview(' + latest + ')">' +
+    '<div id="f-log-preview" style="font-size:12px;color:var(--text2);margin-top:-8px;margin-bottom:14px"></div>' +
+    '<div class="form-actions">' +
+      '<button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>' +
+      '<button class="btn btn-primary" onclick="addLog(\'' + workId + '\',' + latest + ')">記録</button>' +
+    '</div>'
+  );
+  setTimeout(function() { var el = document.getElementById('f-log-chars'); if(el) el.focus(); }, 100);
 }
 
 function updateLogPreview(currentTotal) {
-  const val = parseInt(document.getElementById('f-log-chars')?.value) || 0;
-  const preview = document.getElementById('f-log-preview');
+  var val = parseInt(document.getElementById('f-log-chars')?.value) || 0;
+  var preview = document.getElementById('f-log-preview');
   if (preview && val > 0) {
-    preview.textContent = '→ 累計 ' + fmtNum(currentTotal + val) + '文字になります';
+    preview.innerHTML = fmtNum(currentTotal) + ' + ' + fmtNum(val) + ' = <span style="font-weight:700;color:var(--primary)">' + fmtNum(currentTotal + val) + '文字</span>';
   } else if (preview) {
     preview.textContent = '';
   }
 }
 
 function addLog(workId, currentTotal) {
-  const date = document.getElementById('f-log-date')?.value || todayStr();
-  const addedChars = parseInt(document.getElementById('f-log-chars')?.value) || 0;
+  var date = document.getElementById('f-log-date')?.value || todayStr();
+  var addedChars = parseInt(document.getElementById('f-log-chars')?.value) || 0;
   if (addedChars <= 0) { showToast('文字数を入力してください'); return; }
 
-  const newTotal = currentTotal + addedChars;
-  appData.logs.push({ id: genId(), workId, date, totalChars: newTotal, episodeId: null });
+  var newTotal = currentTotal + addedChars;
+  appData.logs.push({ id: genId(), workId: workId, date: date, totalChars: newTotal, episodeId: null });
   saveData(); closeModal(); render();
   showToast('+' + fmtNum(addedChars) + '文字 → 累計' + fmtNum(newTotal) + '文字');
 }
