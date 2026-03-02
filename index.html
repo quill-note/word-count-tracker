@@ -119,35 +119,6 @@ body {
   margin-top: 2px;
 }
 
-/* Tabs */
-.tabs {
-  display: flex;
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 52px;
-  z-index: 49;
-}
-.tab-btn {
-  flex: 1;
-  text-align: center;
-  padding: 11px 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text3);
-  background: none;
-  border: none;
-  border-bottom: 2.5px solid transparent;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-}
-.tab-btn.active {
-  color: var(--primary);
-  font-weight: 700;
-  border-bottom-color: var(--primary);
-}
-
 /* Content area */
 .content { padding: 12px 16px; }
 
@@ -194,13 +165,13 @@ body {
   gap: 4px;
   margin-top: 6px;
 }
-.card-meta {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
+.card-diff {
   font-size: 12px;
-  color: var(--text2);
+  font-weight: 600;
+  margin-top: 4px;
 }
+.card-diff.plus { color: var(--success); }
+.card-diff.minus { color: var(--danger); }
 
 /* Badges */
 .badge {
@@ -210,9 +181,7 @@ body {
   padding: 2px 8px;
   border-radius: 6px;
 }
-.badge-episodes { background: var(--tag-bg); color: var(--tag-text); border: 1px solid var(--primary-mid); }
 .badge-logs { background: #f5f0e6; color: #8d6e3f; border: 1px solid #e5d8c0; }
-.badge-completed { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
 
 /* Tags */
 .tag {
@@ -283,50 +252,6 @@ body {
   margin-top: 20px;
 }
 
-/* Episode bars */
-.ep-card {
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 1px 4px var(--shadow);
-}
-.ep-info { flex: 1; }
-.ep-name { font-size: 13px; font-weight: 500; color: var(--text); }
-.ep-bar-wrap {
-  margin-top: 6px;
-  height: 4px;
-  background: var(--bg);
-  border-radius: 2px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-.ep-bar {
-  height: 100%;
-  background: var(--primary);
-  border-radius: 2px;
-  transition: width 0.3s;
-}
-.ep-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: 14px;
-}
-.ep-chars { font-size: 14px; font-weight: 700; color: var(--text); }
-.ep-del {
-  background: none;
-  border: none;
-  color: var(--text3);
-  cursor: pointer;
-  font-size: 16px;
-  padding: 2px 4px;
-}
-
 /* Log history */
 .log-row {
   display: flex;
@@ -338,8 +263,61 @@ body {
   font-size: 13px;
 }
 .log-row:nth-child(odd) { background: var(--card); border: 1px solid var(--border); }
-.log-date { color: var(--text2); }
+.log-date { color: var(--text2); flex-shrink: 0; }
+.log-center { display: flex; align-items: center; gap: 6px; flex: 1; justify-content: center; }
 .log-chars { font-weight: 600; color: var(--text); }
+.log-diff { font-size: 11px; font-weight: 600; }
+.log-diff.plus { color: var(--success); }
+.log-diff.minus { color: var(--danger); }
+.log-diff.zero { color: var(--text3); }
+.log-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.log-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: var(--text3);
+  transition: all 0.15s;
+}
+.log-action-btn:hover { color: var(--primary); background: var(--primary-light); }
+.log-action-btn.del:hover { color: var(--danger); background: var(--danger-bg); }
+
+/* Summary cards for weekly/monthly */
+.summary-cards {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.summary-card {
+  flex: 1;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 6px var(--shadow);
+  text-align: center;
+}
+.summary-card-label {
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 4px;
+}
+.summary-card-num {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.summary-card-sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
 
 /* Chart container */
 .chart-wrap {
@@ -446,32 +424,6 @@ body {
   justify-content: flex-end;
   margin-top: 8px;
 }
-.ep-input-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-.ep-input-label {
-  font-size: 13px;
-  color: var(--text);
-  width: 110px;
-  flex-shrink: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ep-input {
-  flex: 1;
-  padding: 8px 10px;
-  background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-}
 
 /* Empty state */
 .empty {
@@ -551,6 +503,9 @@ function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) appData = JSON.parse(raw);
+    // マイグレーション：ログにidがないものにidを付与
+    appData.logs.forEach(l => { if (!l.id) l.id = genId(); });
+    saveData();
   } catch(e) { console.error(e); }
 }
 function saveData() {
@@ -582,13 +537,77 @@ function showToast(msg) {
   setTimeout(()=>t.classList.remove('show'),2000);
 }
 
+function diffLabel(diff) {
+  if (diff > 0) return `<span class="log-diff plus">+${fmtNum(diff)}</span>`;
+  if (diff < 0) return `<span class="log-diff minus">${fmtNum(diff)}</span>`;
+  return `<span class="log-diff zero">±0</span>`;
+}
+
+function cardDiffLabel(diff) {
+  if (diff > 0) return `<div class="card-diff plus">前回比 +${fmtNum(diff)}文字</div>`;
+  if (diff < 0) return `<div class="card-diff minus">前回比 ${fmtNum(diff)}文字</div>`;
+  return '';
+}
+
+// 週の開始日（月曜）を取得
+function getWeekStart(dateStr) {
+  const d = new Date(dateStr);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d);
+  monday.setDate(diff);
+  return monday.toISOString().slice(0,10);
+}
+
 const CHART_COLORS = ['#e07060','#4a9e6e','#c48a2a','#7c6db0','#e0927a','#5aada0','#d4a24a','#9a8cc0'];
+
+// ─── 差分計算ヘルパー ───
+function getWorkLogs(workId) {
+  return appData.logs
+    .filter(l => l.workId === workId && !l.episodeId)
+    .sort((a,b) => {
+      const dc = a.date.localeCompare(b.date);
+      if (dc !== 0) return dc;
+      return appData.logs.indexOf(a) - appData.logs.indexOf(b);
+    });
+}
+
+function getLatestChars(workId) {
+  const wLogs = getWorkLogs(workId);
+  return wLogs.length > 0 ? wLogs[wLogs.length-1].totalChars : 0;
+}
+
+function getLastDiff(workId) {
+  const wLogs = getWorkLogs(workId);
+  if (wLogs.length < 2) return 0;
+  return wLogs[wLogs.length-1].totalChars - wLogs[wLogs.length-2].totalChars;
+}
+
+// 週間・月間の執筆量を計算
+function calcPeriodWritten(workId, periodType) {
+  const wLogs = getWorkLogs(workId);
+  if (wLogs.length < 1) return 0;
+
+  let startDate;
+  if (periodType === 'week') {
+    startDate = getWeekStart(todayStr());
+  } else {
+    startDate = todayStr().slice(0,7) + '-01';
+  }
+
+  const periodLogs = wLogs.filter(l => l.date >= startDate);
+  if (periodLogs.length === 0) return 0;
+
+  const beforeLogs = wLogs.filter(l => l.date < startDate);
+  const baseline = beforeLogs.length > 0 ? beforeLogs[beforeLogs.length-1].totalChars : 0;
+  const latestInPeriod = periodLogs[periodLogs.length-1].totalChars;
+  return latestInPeriod - baseline;
+}
 
 // ─── Render ───
 function render() {
   const app = document.getElementById('app');
 
-  // Header
   let html = `
     <div class="header">
       <div class="header-title">
@@ -605,7 +624,6 @@ function render() {
       </div>
     </div>`;
 
-  // Stats
   const totalWorks = appData.works.length;
   const totalLogs = appData.logs.filter(l=>!l.episodeId).length;
   html += `
@@ -614,7 +632,6 @@ function render() {
       <div class="stat-item"><div class="stat-num">${totalLogs}</div><div class="stat-label">記録数</div></div>
     </div>`;
 
-  // Content
   html += '<div class="content">';
   if (currentTab === 'works' && !selectedWorkId) {
     html += renderWorkList();
@@ -629,7 +646,6 @@ function render() {
   }
   html += '</div>';
 
-  // Bottom nav
   html += `
     <div class="bottom-nav">
       <button class="nav-item ${currentTab==='works'?'active':''}" onclick="switchTab('works')">
@@ -676,9 +692,9 @@ function renderWorkList() {
   </div>`;
 
   appData.works.forEach(w => {
-    const wLogs = appData.logs.filter(l => l.workId === w.id && !l.episodeId);
-    const latest = wLogs.length > 0 ? wLogs[wLogs.length-1].totalChars : 0;
-    const epCount = (w.episodes||[]).length;
+    const latest = getLatestChars(w.id);
+    const diff = getLastDiff(w.id);
+    const wLogs = getWorkLogs(w.id);
 
     html += `<div class="card" onclick="selectWork('${w.id}')">
       <div class="card-header">
@@ -689,9 +705,9 @@ function renderWorkList() {
         </div>
       </div>
       <div class="card-tags">
-        ${epCount > 0 ? `<span class="badge badge-episodes">${epCount}話</span>` : ''}
         ${wLogs.length > 0 ? `<span class="badge badge-logs">記録 ${wLogs.length}件</span>` : ''}
       </div>
+      ${cardDiffLabel(diff)}
     </div>`;
   });
   return html;
@@ -707,12 +723,11 @@ function renderWorkDetail() {
   const w = appData.works.find(x => x.id === selectedWorkId);
   if (!w) return '';
 
-  const wLogs = appData.logs.filter(l => l.workId === w.id);
-  const totalLogs = wLogs.filter(l => !l.episodeId);
-  const latestTotal = totalLogs.length > 0 ? totalLogs[totalLogs.length-1].totalChars : 0;
-
-  const epLatest = {};
-  wLogs.forEach(l => { if (l.episodeId) epLatest[l.episodeId] = l.chars; });
+  const wLogs = getWorkLogs(w.id);
+  const latestTotal = getLatestChars(w.id);
+  const lastDiff = getLastDiff(w.id);
+  const weekWritten = calcPeriodWritten(w.id, 'week');
+  const monthWritten = calcPeriodWritten(w.id, 'month');
 
   let html = `
     <button class="detail-back" onclick="selectedWorkId=null;render()">← 一覧に戻る</button>
@@ -721,62 +736,66 @@ function renderWorkDetail() {
       <span class="detail-chars">${fmtNum(latestTotal)}</span>
       <span class="detail-chars-label">文字</span>
     </div>
+    ${lastDiff !== 0 ? `<div class="card-diff ${lastDiff > 0 ? 'plus' : 'minus'}">前回比 ${lastDiff > 0 ? '+' : ''}${fmtNum(lastDiff)}文字</div>` : ''}
     <div class="detail-actions">
       <button class="btn btn-primary" onclick="openAddLogModal('${w.id}')">文字数を記録</button>
-      <button class="btn btn-ghost" onclick="openAddEpisodeModal('${w.id}')">＋ 話を追加</button>
       <button class="btn btn-danger" onclick="deleteWork('${w.id}')">削除</button>
     </div>`;
 
-  // Episodes
-  if (w.episodes && w.episodes.length > 0) {
-    html += '<div class="section-title">エピソード内訳</div>';
-    w.episodes.forEach(ep => {
-      const chars = epLatest[ep.id] || 0;
-      const pct = latestTotal > 0 ? (chars / latestTotal * 100) : 0;
-      html += `<div class="ep-card">
-        <div class="ep-info">
-          <div class="ep-name">${esc(ep.title)}</div>
-          <div class="ep-bar-wrap"><div class="ep-bar" style="width:${pct}%"></div></div>
-        </div>
-        <div class="ep-right">
-          <span class="ep-chars">${fmtNum(chars)}</span>
-          <button class="ep-del" onclick="deleteEpisode('${w.id}','${ep.id}')">×</button>
-        </div>
-      </div>`;
-    });
+  // 週間・月間サマリー
+  if (wLogs.length >= 1) {
+    html += `
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="summary-card-label">今週の執筆量</div>
+        <div class="summary-card-num">${weekWritten > 0 ? '+' : ''}${fmtNum(weekWritten)}</div>
+        <div class="summary-card-sub">文字</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">今月の執筆量</div>
+        <div class="summary-card-num">${monthWritten > 0 ? '+' : ''}${fmtNum(monthWritten)}</div>
+        <div class="summary-card-sub">文字</div>
+      </div>
+    </div>`;
   }
 
   // Chart
-  if (totalLogs.length > 1) {
+  if (wLogs.length > 1) {
     html += '<div class="section-title">文字数推移</div>';
     html += '<div class="chart-wrap"><canvas id="detailChart" class="chart-canvas" height="180"></canvas></div>';
   }
 
-  // Log history
+  // Log history with diff and edit/delete
   if (wLogs.length > 0) {
     html += '<div class="section-title">記録履歴</div>';
-    [...wLogs].reverse().slice(0,30).forEach((l,i) => {
-      const ep = l.episodeId ? (w.episodes||[]).find(e => e.id === l.episodeId) : null;
+    const sorted = [...wLogs].reverse();
+    sorted.forEach((l, ri) => {
+      const origIdx = wLogs.length - 1 - ri;
+      const prevLog = origIdx > 0 ? wLogs[origIdx - 1] : null;
+      const diff = prevLog ? l.totalChars - prevLog.totalChars : 0;
+      const logId = l.id || '';
       html += `<div class="log-row">
         <span class="log-date">${fmtDate(l.date)}</span>
-        ${ep ? `<span class="tag">${esc(ep.title)}</span>` : ''}
-        <span class="log-chars">${fmtNum(l.totalChars || l.chars)}文字</span>
+        <span class="log-center">
+          <span class="log-chars">${fmtNum(l.totalChars)}文字</span>
+          ${origIdx > 0 ? diffLabel(diff) : '<span class="log-diff zero">初回</span>'}
+        </span>
+        <span class="log-actions">
+          <button class="log-action-btn" onclick="event.stopPropagation();openEditLogModal('${w.id}','${logId}')" title="編集">✎</button>
+          <button class="log-action-btn del" onclick="event.stopPropagation();deleteLog('${w.id}','${logId}')" title="削除">×</button>
+        </span>
       </div>`;
     });
   }
 
-  // Draw chart after render
-  setTimeout(() => drawDetailChart(totalLogs), 50);
-
+  setTimeout(() => drawDetailChart(wLogs), 50);
   return html;
 }
 
 // ─── Compare ───
 function renderCompare() {
   const items = appData.works.map(w => {
-    const wl = appData.logs.filter(l => l.workId === w.id && !l.episodeId);
-    const latest = wl.length > 0 ? wl[wl.length-1].totalChars : 0;
-    return { title: w.title, chars: latest };
+    return { title: w.title, chars: getLatestChars(w.id) };
   }).sort((a,b) => b.chars - a.chars);
 
   if (items.length === 0) return '<div class="empty">比較する作品がありません</div>';
@@ -805,13 +824,11 @@ function renderTimeline() {
   let html = '<div class="section-title">全作品の文字数推移</div>';
   html += '<div class="chart-wrap"><canvas id="timelineChart" class="chart-canvas" height="220"></canvas></div>';
 
-  // Legend
   html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">';
   appData.works.forEach((w,i) => {
-    const color = CHART_COLORS[i % CHART_COLORS.length];
-    html += `<div style="display:flex;align-items:center;gap:4px;font-size:12px">
-      <div style="width:10px;height:10px;border-radius:3px;background:${color}"></div>
-      ${esc(w.title)}
+    html += `<div style="display:flex;align-items:center;gap:4px">
+      <div style="width:10px;height:10px;border-radius:50%;background:${CHART_COLORS[i%CHART_COLORS.length]}"></div>
+      <span style="font-size:11px;color:var(--text2)">${esc(w.title)}</span>
     </div>`;
   });
   html += '</div>';
@@ -823,21 +840,16 @@ function renderTimeline() {
 // ─── Backup ───
 function renderBackup() {
   return `
-    <div class="section-title" style="margin-top:8px">データ管理</div>
-    <div style="margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.6">
-      データはこの端末のブラウザに保存されます。<br>
-      機種変更やキャッシュクリア時に備えて、こまめにバックアップを取ることをおすすめします。
+    <div class="section-title">データ管理</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-primary" onclick="exportData()">バックアップを保存</button>
+      <label class="btn btn-ghost" style="text-align:center;cursor:pointer">
+        データを復元
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+      </label>
     </div>
-    <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="exportData()">バックアップを保存</button>
-    <button class="btn btn-ghost" style="width:100%;margin-bottom:20px" onclick="document.getElementById('importFile').click()">バックアップを読み込み</button>
-    <input type="file" id="importFile" accept=".json,.txt" style="display:none" onchange="importData(event)">
-
-    <div style="background:var(--primary-pale);border:1.5px solid var(--primary-mid);border-radius:12px;padding:14px;margin-top:10px">
-      <div style="font-size:14px;font-weight:700;color:var(--primary);margin-bottom:8px">ホーム画面に追加</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.5">
-        <b>iPhone：</b>共有ボタン → 「ホーム画面に追加」<br>
-        <b>Android：</b>メニュー → 「ホーム画面に追加」
-      </div>
+    <div style="margin-top:20px;font-size:12px;color:var(--text3);text-align:center">
+      データはブラウザに保存されています。<br>機種変更やブラウザ変更の前にバックアップを保存してください。
     </div>`;
 }
 
@@ -861,6 +873,7 @@ function importData(event) {
       const imported = JSON.parse(e.target.result);
       if (imported.works && imported.logs) {
         appData = imported;
+        appData.logs.forEach(l => { if (!l.id) l.id = genId(); });
         saveData();
         render();
         showToast('データを読み込みました');
@@ -892,8 +905,7 @@ function drawDetailChart(logs) {
   const vals = logs.map(l => l.totalChars);
   const maxVal = Math.max(...vals, 1);
 
-  ctx.strokeStyle = '#f0ddd9';
-  ctx.lineWidth = 0.5;
+  ctx.strokeStyle = '#f0ddd9'; ctx.lineWidth = 0.5;
   for (let i = 0; i <= 4; i++) {
     const y = pad.top + ch - (ch * i / 4);
     ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
@@ -901,10 +913,7 @@ function drawDetailChart(logs) {
     ctx.fillText(`${Math.round(maxVal * i / 4 / 1000)}k`, 4, y + 3);
   }
 
-  // Line
-  ctx.strokeStyle = '#e07060';
-  ctx.lineWidth = 2.5;
-  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#e07060'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
   ctx.beginPath();
   logs.forEach((l, i) => {
     const x = pad.left + (cw * i / Math.max(logs.length - 1, 1));
@@ -913,7 +922,6 @@ function drawDetailChart(logs) {
   });
   ctx.stroke();
 
-  // Dots
   logs.forEach((l, i) => {
     const x = pad.left + (cw * i / Math.max(logs.length - 1, 1));
     const y = pad.top + ch - (ch * l.totalChars / maxVal);
@@ -923,7 +931,6 @@ function drawDetailChart(logs) {
     ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fill();
   });
 
-  // X labels
   ctx.fillStyle = '#bba8a6'; ctx.font = '10px Zen Maru Gothic'; ctx.textAlign = 'center';
   const step = Math.max(1, Math.floor(logs.length / 6));
   logs.forEach((l, i) => {
@@ -947,7 +954,6 @@ function drawTimelineChart(allDates) {
   const cw = W - pad.left - pad.right;
   const ch = H - pad.top - pad.bottom;
 
-  // Build data
   const series = appData.works.map(w => {
     return allDates.map(date => {
       const wl = appData.logs.filter(l => l.workId === w.id && !l.episodeId && l.date <= date);
@@ -958,7 +964,6 @@ function drawTimelineChart(allDates) {
   const allVals = series.flat().filter(v => v !== null);
   const maxVal = Math.max(...allVals, 1);
 
-  // Grid
   ctx.strokeStyle = '#f0ddd9'; ctx.lineWidth = 0.5;
   for (let i = 0; i <= 4; i++) {
     const y = pad.top + ch - (ch * i / 4);
@@ -967,7 +972,6 @@ function drawTimelineChart(allDates) {
     ctx.fillText(`${Math.round(maxVal * i / 4 / 1000)}k`, 4, y + 3);
   }
 
-  // Lines
   series.forEach((s, si) => {
     const color = CHART_COLORS[si % CHART_COLORS.length];
     ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round';
@@ -981,7 +985,6 @@ function drawTimelineChart(allDates) {
     });
     ctx.stroke();
 
-    // Dots
     s.forEach((v, i) => {
       if (v === null) return;
       const x = pad.left + (cw * i / Math.max(allDates.length - 1, 1));
@@ -993,7 +996,6 @@ function drawTimelineChart(allDates) {
     });
   });
 
-  // X labels
   ctx.fillStyle = '#bba8a6'; ctx.font = '10px Zen Maru Gothic'; ctx.textAlign = 'center';
   const step = Math.max(1, Math.floor(allDates.length / 6));
   allDates.forEach((d, i) => {
@@ -1017,7 +1019,7 @@ function openAddWorkModal() {
   openModal(`
     <div class="modal-title">作品を追加</div>
     <label class="form-label">作品タイトル</label>
-    <input class="form-input" id="f-work-title" placeholder="例：ショコラとレモネード">
+    <input class="form-input" id="f-work-title" placeholder="作品名を入力">
     <div class="form-actions">
       <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
       <button class="btn btn-primary" onclick="addWork()">追加</button>
@@ -1029,7 +1031,7 @@ function openAddWorkModal() {
 function addWork() {
   const title = document.getElementById('f-work-title')?.value?.trim();
   if (!title) return;
-  appData.works.push({ id: genId(), title, episodes: [], createdAt: todayStr() });
+  appData.works.push({ id: genId(), title, createdAt: todayStr() });
   saveData(); closeModal(); render();
   showToast('作品を追加しました');
 }
@@ -1044,86 +1046,77 @@ function deleteWork(id) {
   showToast('削除しました');
 }
 
-function openAddEpisodeModal(workId) {
-  openModal(`
-    <div class="modal-title">話を追加</div>
-    <label class="form-label">話のタイトル</label>
-    <input class="form-input" id="f-ep-title" placeholder="例：第1話 出会い">
-    <div class="form-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
-      <button class="btn btn-primary" onclick="addEpisode('${workId}')">追加</button>
-    </div>
-  `);
-  setTimeout(() => document.getElementById('f-ep-title')?.focus(), 100);
-}
-
-function addEpisode(workId) {
-  const title = document.getElementById('f-ep-title')?.value?.trim();
-  if (!title) return;
-  const w = appData.works.find(x => x.id === workId);
-  if (!w) return;
-  if (!w.episodes) w.episodes = [];
-  w.episodes.push({ id: genId(), title });
-  saveData(); closeModal(); render();
-  showToast('話を追加しました');
-}
-
-function deleteEpisode(workId, epId) {
-  if (!confirm('この話を削除しますか？')) return;
-  const w = appData.works.find(x => x.id === workId);
-  if (w) w.episodes = (w.episodes||[]).filter(e => e.id !== epId);
-  appData.logs = appData.logs.filter(l => l.episodeId !== epId);
-  saveData(); render();
-}
-
 function openAddLogModal(workId) {
   const w = appData.works.find(x => x.id === workId);
   if (!w) return;
 
-  let epInputs = '';
-  if (w.episodes && w.episodes.length > 0) {
-    epInputs = `<label class="form-label" style="margin-top:4px">各話の文字数（任意）</label>`;
-    w.episodes.forEach(ep => {
-      epInputs += `<div class="ep-input-row">
-        <span class="ep-input-label">${esc(ep.title)}</span>
-        <input class="ep-input" type="number" id="f-ep-${ep.id}" placeholder="文字数">
-      </div>`;
-    });
-  }
+  const latest = getLatestChars(workId);
+  const hint = latest > 0 ? `<div style="font-size:12px;color:var(--text3);margin-bottom:14px">現在の記録: ${fmtNum(latest)}文字</div>` : '';
 
   openModal(`
     <div class="modal-title">文字数を記録</div>
     <label class="form-label">日付</label>
     <input class="form-input" type="date" id="f-log-date" value="${todayStr()}">
     <label class="form-label">作品全体の文字数</label>
-    <input class="form-input" type="number" id="f-log-chars" placeholder="例：12500">
-    ${epInputs}
+    ${hint}
+    <input class="form-input" type="number" id="f-log-chars" placeholder="文字数を入力">
     <div class="form-actions">
       <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
       <button class="btn btn-primary" onclick="addLog('${workId}')">記録</button>
     </div>
   `);
+  setTimeout(() => document.getElementById('f-log-chars')?.focus(), 100);
 }
 
 function addLog(workId) {
-  const w = appData.works.find(x => x.id === workId);
-  if (!w) return;
   const date = document.getElementById('f-log-date')?.value || todayStr();
   const totalChars = parseInt(document.getElementById('f-log-chars')?.value) || 0;
   if (totalChars <= 0) { showToast('文字数を入力してください'); return; }
 
-  appData.logs.push({ workId, date, totalChars, episodeId: null });
-
-  // Episode logs
-  (w.episodes||[]).forEach(ep => {
-    const val = parseInt(document.getElementById(`f-ep-${ep.id}`)?.value) || 0;
-    if (val > 0) {
-      appData.logs.push({ workId, date, chars: val, episodeId: ep.id });
-    }
-  });
-
+  appData.logs.push({ id: genId(), workId, date, totalChars, episodeId: null });
   saveData(); closeModal(); render();
   showToast('記録しました');
+}
+
+// ─── ログの編集 ───
+function openEditLogModal(workId, logId) {
+  const log = appData.logs.find(l => l.id === logId);
+  if (!log) return;
+
+  openModal(`
+    <div class="modal-title">記録を編集</div>
+    <label class="form-label">日付</label>
+    <input class="form-input" type="date" id="f-edit-date" value="${log.date}">
+    <label class="form-label">作品全体の文字数</label>
+    <input class="form-input" type="number" id="f-edit-chars" value="${log.totalChars}">
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveEditLog('${logId}')">保存</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('f-edit-chars')?.focus(), 100);
+}
+
+function saveEditLog(logId) {
+  const log = appData.logs.find(l => l.id === logId);
+  if (!log) return;
+
+  const date = document.getElementById('f-edit-date')?.value || log.date;
+  const totalChars = parseInt(document.getElementById('f-edit-chars')?.value) || 0;
+  if (totalChars <= 0) { showToast('文字数を入力してください'); return; }
+
+  log.date = date;
+  log.totalChars = totalChars;
+  saveData(); closeModal(); render();
+  showToast('記録を更新しました');
+}
+
+// ─── ログの削除 ───
+function deleteLog(workId, logId) {
+  if (!confirm('この記録を削除しますか？')) return;
+  appData.logs = appData.logs.filter(l => l.id !== logId);
+  saveData(); render();
+  showToast('記録を削除しました');
 }
 
 // ─── Service Worker ───
