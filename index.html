@@ -101,13 +101,12 @@ body {
 /* Summary stats */
 .stats-row {
   display: flex;
-  justify-content: center;
-  gap: 40px;
+  justify-content: space-around;
   padding: 14px 16px 10px;
   background: var(--card);
   border-bottom: 1px solid var(--border);
 }
-.stat-item { text-align: center; }
+.stat-item { text-align: center; flex: 1; }
 .stat-num {
   font-size: 22px;
   font-weight: 700;
@@ -586,16 +585,21 @@ function calcPeriodWritten(workId, periodType) {
   const wLogs = getWorkLogs(workId);
   if (wLogs.length < 1) return 0;
 
-  let startDate;
+  const today = todayStr();
+  let startDate, endDate;
+
   if (periodType === 'week') {
-    startDate = getWeekStart(todayStr());
+    startDate = getWeekStart(today);
+    endDate = today;
   } else if (periodType === 'month') {
-    startDate = todayStr().slice(0,7) + '-01';
+    startDate = today.slice(0,7) + '-01';
+    endDate = today;
   } else {
-    startDate = todayStr();
+    startDate = today;
+    endDate = today;
   }
 
-  const periodLogs = wLogs.filter(l => l.date >= startDate);
+  const periodLogs = wLogs.filter(l => l.date >= startDate && l.date <= endDate);
   if (periodLogs.length === 0) return 0;
 
   const beforeLogs = wLogs.filter(l => l.date < startDate);
