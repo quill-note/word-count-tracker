@@ -599,7 +599,8 @@ async function saveToGist() {
     let res;
     if (gistId) {
       res = await fetch('https://api.github.com/gists/' + gistId, {
-        method: 'PATCH',
+      res = await fetch('https://api.github.com/gists/' + gistId, {
+        cache: 'no-store',
         headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
@@ -607,7 +608,8 @@ async function saveToGist() {
       payload.description = '文字数カウント バックアップ';
       payload.public = false;
       res = await fetch('https://api.github.com/gists', {
-        method: 'POST',
+      res = await fetch('https://api.github.com/gists', {
+        cache: 'no-store',
         headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
@@ -628,7 +630,8 @@ async function loadFromGist() {
 
   try {
     const res = await fetch('https://api.github.com/gists/' + gistId, {
-      headers: { 'Authorization': 'token ' + token }
+    const res = await fetch('https://api.github.com/gists/' + gistId, {
+      cache: 'no-store',
     });
     if (res.ok) {
       const data = await res.json();
@@ -1081,11 +1084,16 @@ function renderBackup() {
 
 function saveGistToken() {
   const token = document.getElementById('f-gist-token')?.value?.trim();
-  if (!token || !token.startsWith('ghp_')) { showToast('正しいトークンを入力してください'); return; }
+  if (!token) { showToast('トークンを入力してください'); return; }
+  if (!token.startsWith('ghp_')) { showToast('ghp_ で始まるトークンを入力してください'); return; }
   setGistToken(token);
+  showToast('保存中...');
   saveToGist().then(() => {
     render();
     showToast('トークンを保存しました');
+  }).catch(e => {
+    console.error('Gist error:', e);
+    showToast('エラー: ' + e.message);
   });
 }
 
