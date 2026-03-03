@@ -599,7 +599,7 @@ async function saveToGist() {
     let res;
     if (gistId) {
       res = await fetch('https://api.github.com/gists/' + gistId, {
-      res = await fetch('https://api.github.com/gists/' + gistId, {
+        method: 'PATCH',
         cache: 'no-store',
         headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -608,7 +608,7 @@ async function saveToGist() {
       payload.description = '文字数カウント バックアップ';
       payload.public = false;
       res = await fetch('https://api.github.com/gists', {
-      res = await fetch('https://api.github.com/gists', {
+        method: 'POST',
         cache: 'no-store',
         headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -618,9 +618,9 @@ async function saveToGist() {
       const data = await res.json();
       setGistId(data.id);
     } else {
-      console.error('Gist save failed:', res.status);
+      throw new Error('Gist保存失敗: ' + res.status);
     }
-  } catch(e) { console.error('Gist save error:', e); }
+  } catch(e) { console.error('Gist save error:', e); throw e; }
 }
 
 async function loadFromGist() {
@@ -630,8 +630,8 @@ async function loadFromGist() {
 
   try {
     const res = await fetch('https://api.github.com/gists/' + gistId, {
-    const res = await fetch('https://api.github.com/gists/' + gistId, {
       cache: 'no-store',
+      headers: { 'Authorization': 'token ' + token }
     });
     if (res.ok) {
       const data = await res.json();
