@@ -587,15 +587,37 @@ async function restoreGistCredentials() {
   }
 }
 
+async function findGistByFilename(token) {
+  try {
+    const res = await fetch('https://api.github.com/gists', {
+      cache: 'no-store',
+      headers: { 'Authorization': 'token ' + token }
+    });
+    if (!res.ok) return null;
+    const gists = await res.json();
+    for (var i = 0; i < gists.length; i++) {
+      if (gists[i].files && gists[i].files[GIST_FILENAME]) {
+        return gists[i].id;
+      }
+    }
+  } catch(e) { console.error('Gist search error:', e); }
+  return null;
+}
+
 async function saveToGist() {
   const token = getGistToken();
   if (!token) return;
+
+  var gistId = getGistId();
+  if (!gistId) {
+    gistId = await findGistByFilename(token);
+    if (gistId) setGistId(gistId);
+  }
 
   const payload = { files: {} };
   payload.files[GIST_FILENAME] = { content: JSON.stringify(appData, null, 2) };
 
   try {
-    const gistId = getGistId();
     let res;
     if (gistId) {
       res = await fetch('https://api.github.com/gists/' + gistId, {
@@ -625,8 +647,14 @@ async function saveToGist() {
 
 async function loadFromGist() {
   const token = getGistToken();
-  const gistId = getGistId();
-  if (!token || !gistId) return null;
+  if (!token) return null;
+
+  var gistId = getGistId();
+  if (!gistId) {
+    gistId = await findGistByFilename(token);
+    if (gistId) setGistId(gistId);
+  }
+  if (!gistId) return null;
 
   try {
     const res = await fetch('https://api.github.com/gists/' + gistId, {
