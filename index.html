@@ -192,6 +192,12 @@ body {
 }
 
 /* Detail view */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
 .detail-back {
   background: none;
   border: none;
@@ -200,9 +206,29 @@ body {
   font-size: 13px;
   font-weight: 500;
   padding: 0;
-  margin-bottom: 14px;
   font-family: inherit;
 }
+.detail-header-actions {
+  display: flex;
+  gap: 8px;
+}
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.15s;
+  color: var(--text2);
+}
+.icon-btn:hover { border-color: var(--primary-mid); color: var(--primary); }
+.icon-btn.del { color: var(--text3); }
+.icon-btn.del:hover { border-color: #f0c0c0; color: var(--danger); background: var(--danger-bg); }
 .detail-title {
   font-size: 18px;
   font-weight: 700;
@@ -533,32 +559,112 @@ async function loadFromIDB() {
   } catch(e) { console.error('IDB load error:', e); return null; }
 }
 
+// ─── GitHub Gist 保存 ───
+const GIST_TOKEN_KEY = 'wct-gist-token';
+const GIST_ID_KEY = 'wct-gist-id';
+const GIST_FILENAME = 'word-count-tracker-data.json';
+
+function getGistToken() { return localStorage.getItem(GIST_TOKEN_KEY) || ''; }
+function getGistId() { return localStorage.getItem(GIST_ID_KEY) || ''; }
+
+async function saveToGist() {
+  const token = getGistToken();
+  if (!token) return;
+
+  const payload = { files: {} };
+  payload.files[GIST_FILENAME] = { content: JSON.stringify(appData, null, 2) };
+
+  try {
+    const gistId = getGistId();
+    let res;
+    if (gistId) {
+      res = await fetch('https://api.github.com/gists/' + gistId, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      payload.description = '文字数カウント バックアップ';
+      payload.public = false;
+      res = await fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem(GIST_ID_KEY, data.id);
+    } else {
+      console.error('Gist save failed:', res.status);
+    }
+  } catch(e) { console.error('Gist save error:', e); }
+}
+
+async function loadFromGist() {
+  const token = getGistToken();
+  const gistId = getGistId();
+  if (!token || !gistId) return null;
+
+  try {
+    const res = await fetch('https://api.github.com/gists/' + gistId, {
+      headers: { 'Authorization': 'token ' + token }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.files && data.files[GIST_FILENAME]) {
+        return JSON.parse(data.files[GIST_FILENAME].content);
+      }
+    }
+  } catch(e) { console.error('Gist load error:', e); }
+  return null;
+}
+
 // ─── Data ───
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) appData = JSON.parse(raw);
     appData.logs.forEach(l => { if (!l.id) l.id = genId(); });
-    saveData();
+    saveDataLocal();
   } catch(e) { console.error(e); }
 
-  // IndexedDBから復元を試みる（localStorageが空の場合）
+  // IndexedDBから復元
   loadFromIDB().then(idbData => {
     if (idbData && appData.works.length === 0 && idbData.works && idbData.works.length > 0) {
       appData = idbData;
       appData.logs.forEach(l => { if (!l.id) l.id = genId(); });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
       render();
-      showToast('バックアップから復元しました');
+      showToast('IndexedDBから復元しました');
+      return;
+    }
+    // Gistから復元
+    if (appData.works.length === 0 && getGistToken()) {
+      loadFromGist().then(gistData => {
+        if (gistData && gistData.works && gistData.works.length > 0) {
+          appData = gistData;
+          appData.logs.forEach(l => { if (!l.id) l.id = genId(); });
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+          saveToIDB(appData);
+          render();
+          showToast('クラウドから復元しました');
+        }
+      });
     }
   });
 }
 
-function saveData() {
+function saveDataLocal() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
   } catch(e) { console.error(e); }
+}
+
+function saveData() {
+  saveDataLocal();
   saveToIDB(appData);
+  saveToGist();
 }
 
 // ─── State ───
@@ -794,17 +900,21 @@ function renderWorkDetail() {
   const monthWritten = calcPeriodWritten(w.id, 'month');
 
   let html = `
-    <button class="detail-back" onclick="selectedWorkId=null;render()">← 一覧に戻る</button>
+    <div class="detail-header">
+      <button class="detail-back" onclick="selectedWorkId=null;render()">← 戻る</button>
+      <div class="detail-header-actions">
+        <button class="icon-btn" onclick="openEditWorkModal('${w.id}')" title="作品名を編集"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="icon-btn del" onclick="deleteWork('${w.id}')" title="削除"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+      </div>
+    </div>
     <div class="detail-title">${esc(w.title)}</div>
     <div style="margin-bottom:4px">
       <span class="detail-chars">${fmtNum(latestTotal)}</span>
       <span class="detail-chars-label">文字</span>
     </div>
     ${lastDiff !== 0 ? `<div class="card-diff ${lastDiff > 0 ? 'plus' : 'minus'}">前回比 ${lastDiff > 0 ? '+' : ''}${fmtNum(lastDiff)}文字</div>` : ''}
-    <div class="detail-actions">
+    <div style="margin-top:14px">
       <button class="btn btn-primary" onclick="openAddLogModal('${w.id}')">文字数を記録</button>
-      <button class="btn btn-ghost" onclick="openEditWorkModal('${w.id}')">作品名を編集</button>
-      <button class="btn btn-danger" onclick="deleteWork('${w.id}')">削除</button>
     </div>`;
 
   // 週間・月間・今日のサマリー
@@ -910,8 +1020,30 @@ function renderTimeline() {
 
 // ─── Backup ───
 function renderBackup() {
+  const token = getGistToken();
+  const gistId = getGistId();
+  const connected = token && gistId;
+  const statusText = connected ? '<span style="color:var(--success);font-weight:600">接続済み ✓</span>' :
+    token ? '<span style="color:var(--warning);font-weight:600">トークン設定済み（初回保存で接続）</span>' :
+    '<span style="color:var(--text3)">未設定</span>';
+
   return `
-    <div class="section-title">データ管理</div>
+    <div class="section-title">クラウド保存（GitHub Gist）</div>
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px;box-shadow:0 2px 6px var(--shadow)">
+      <div style="font-size:13px;margin-bottom:10px">状態: ${statusText}</div>
+      ${!token ? `
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">GitHubのPersonal Access Tokenを設定すると、データが自動でクラウドに保存されます。</div>
+        <input class="form-input" type="password" id="f-gist-token" placeholder="ghp_ で始まるトークンを貼り付け" style="margin-bottom:8px">
+        <button class="btn btn-primary btn-sm" onclick="saveGistToken()">トークンを保存</button>
+      ` : `
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="manualGistSync()">今すぐ同期</button>
+          <button class="btn btn-ghost btn-sm" onclick="manualGistRestore()">クラウドから復元</button>
+          <button class="btn btn-danger btn-sm" onclick="clearGistToken()">トークン削除</button>
+        </div>
+      `}
+    </div>
+    <div class="section-title">ファイルバックアップ</div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <button class="btn btn-primary" onclick="exportData()">バックアップを保存</button>
       <label class="btn btn-ghost" style="text-align:center;cursor:pointer">
@@ -920,8 +1052,45 @@ function renderBackup() {
       </label>
     </div>
     <div style="margin-top:20px;font-size:12px;color:var(--text3);text-align:center">
-      データはブラウザに保存されています。<br>機種変更やブラウザ変更の前にバックアップを保存してください。
+      クラウド保存を設定すると、記録のたびに自動保存されます。<br>ブラウザのデータを削除しても復元できます。
     </div>`;
+}
+
+function saveGistToken() {
+  const token = document.getElementById('f-gist-token')?.value?.trim();
+  if (!token || !token.startsWith('ghp_')) { showToast('正しいトークンを入力してください'); return; }
+  localStorage.setItem(GIST_TOKEN_KEY, token);
+  saveToGist().then(() => {
+    render();
+    showToast('トークンを保存しました');
+  });
+}
+
+function clearGistToken() {
+  if (!confirm('トークンを削除しますか？クラウド保存が無効になります。')) return;
+  localStorage.removeItem(GIST_TOKEN_KEY);
+  localStorage.removeItem(GIST_ID_KEY);
+  render();
+  showToast('トークンを削除しました');
+}
+
+function manualGistSync() {
+  saveToGist().then(() => showToast('クラウドに同期しました'));
+}
+
+function manualGistRestore() {
+  loadFromGist().then(data => {
+    if (data && data.works) {
+      appData = data;
+      appData.logs.forEach(l => { if (!l.id) l.id = genId(); });
+      saveDataLocal();
+      saveToIDB(appData);
+      render();
+      showToast('クラウドから復元しました');
+    } else {
+      showToast('クラウドにデータがありません');
+    }
+  });
 }
 
 function exportData() {
