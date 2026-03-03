@@ -37,7 +37,7 @@
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 body {
-  font-family: 'Zen Maru Gothic', sans-serif;
+  font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -567,6 +567,26 @@ const GIST_FILENAME = 'word-count-tracker-data.json';
 function getGistToken() { return localStorage.getItem(GIST_TOKEN_KEY) || ''; }
 function getGistId() { return localStorage.getItem(GIST_ID_KEY) || ''; }
 
+function setGistToken(token) {
+  localStorage.setItem(GIST_TOKEN_KEY, token);
+  saveToIDB({ _gistToken: token, _gistId: getGistId() });
+}
+function setGistId(id) {
+  localStorage.setItem(GIST_ID_KEY, id);
+  saveToIDB({ ...appData, _gistToken: getGistToken(), _gistId: id });
+}
+
+async function restoreGistCredentials() {
+  const idbData = await loadFromIDB();
+  if (!idbData) return;
+  if (idbData._gistToken && !getGistToken()) {
+    localStorage.setItem(GIST_TOKEN_KEY, idbData._gistToken);
+  }
+  if (idbData._gistId && !getGistId()) {
+    localStorage.setItem(GIST_ID_KEY, idbData._gistId);
+  }
+}
+
 async function saveToGist() {
   const token = getGistToken();
   if (!token) return;
@@ -594,7 +614,7 @@ async function saveToGist() {
     }
     if (res.ok) {
       const data = await res.json();
-      localStorage.setItem(GIST_ID_KEY, data.id);
+      setGistId(data.id);
     } else {
       console.error('Gist save failed:', res.status);
     }
@@ -629,8 +649,10 @@ function loadData() {
     saveDataLocal();
   } catch(e) { console.error(e); }
 
-  // IndexedDBから復元
-  loadFromIDB().then(idbData => {
+  // まずGist認証情報を復元、その後データ復元
+  restoreGistCredentials().then(() => {
+    return loadFromIDB();
+  }).then(idbData => {
     if (idbData && appData.works.length === 0 && idbData.works && idbData.works.length > 0) {
       appData = idbData;
       appData.logs.forEach(l => { if (!l.id) l.id = genId(); });
@@ -663,7 +685,8 @@ function saveDataLocal() {
 
 function saveData() {
   saveDataLocal();
-  saveToIDB(appData);
+  var idbPayload = Object.assign({}, appData, { _gistToken: getGistToken(), _gistId: getGistId() });
+  saveToIDB(idbPayload);
   saveToGist();
 }
 
@@ -1059,7 +1082,7 @@ function renderBackup() {
 function saveGistToken() {
   const token = document.getElementById('f-gist-token')?.value?.trim();
   if (!token || !token.startsWith('ghp_')) { showToast('正しいトークンを入力してください'); return; }
-  localStorage.setItem(GIST_TOKEN_KEY, token);
+  setGistToken(token);
   saveToGist().then(() => {
     render();
     showToast('トークンを保存しました');
@@ -1070,6 +1093,7 @@ function clearGistToken() {
   if (!confirm('トークンを削除しますか？クラウド保存が無効になります。')) return;
   localStorage.removeItem(GIST_TOKEN_KEY);
   localStorage.removeItem(GIST_ID_KEY);
+  saveToIDB(appData);
   render();
   showToast('トークンを削除しました');
 }
@@ -1149,7 +1173,7 @@ function drawDetailChart(logs) {
   for (let i = 0; i <= 4; i++) {
     const y = pad.top + ch - (ch * i / 4);
     ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
-    ctx.fillStyle = '#bba8a6'; ctx.font = '10px Zen Maru Gothic';
+    ctx.fillStyle = '#bba8a6'; ctx.font = '10px Hiragino Sans, Meiryo';
     ctx.fillText(`${Math.round(maxVal * i / 4 / 1000)}k`, 4, y + 3);
   }
 
@@ -1171,7 +1195,7 @@ function drawDetailChart(logs) {
     ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fill();
   });
 
-  ctx.fillStyle = '#bba8a6'; ctx.font = '10px Zen Maru Gothic'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#bba8a6'; ctx.font = '10px Hiragino Sans, Meiryo'; ctx.textAlign = 'center';
   const step = Math.max(1, Math.floor(logs.length / 6));
   logs.forEach((l, i) => {
     if (i % step === 0 || i === logs.length - 1) {
@@ -1208,7 +1232,7 @@ function drawTimelineChart(allDates) {
   for (let i = 0; i <= 4; i++) {
     const y = pad.top + ch - (ch * i / 4);
     ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
-    ctx.fillStyle = '#bba8a6'; ctx.font = '10px Zen Maru Gothic'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#bba8a6'; ctx.font = '10px Hiragino Sans, Meiryo'; ctx.textAlign = 'left';
     ctx.fillText(`${Math.round(maxVal * i / 4 / 1000)}k`, 4, y + 3);
   }
 
@@ -1236,7 +1260,7 @@ function drawTimelineChart(allDates) {
     });
   });
 
-  ctx.fillStyle = '#bba8a6'; ctx.font = '10px Zen Maru Gothic'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#bba8a6'; ctx.font = '10px Hiragino Sans, Meiryo'; ctx.textAlign = 'center';
   const step = Math.max(1, Math.floor(allDates.length / 6));
   allDates.forEach((d, i) => {
     if (i % step === 0 || i === allDates.length - 1) {
