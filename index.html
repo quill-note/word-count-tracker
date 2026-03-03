@@ -496,19 +496,69 @@ body {
 const STORAGE_KEY = 'word-count-tracker';
 let appData = { works: [], logs: [] };
 
+// ─── IndexedDB ───
+const IDB_NAME = 'word-count-tracker-db';
+const IDB_STORE = 'backup';
+const IDB_KEY = 'appData';
+
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveToIDB(data) {
+  try {
+    const db = await openIDB();
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(JSON.stringify(data), IDB_KEY);
+  } catch(e) { console.error('IDB save error:', e); }
+}
+
+async function loadFromIDB() {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+      req.onsuccess = () => {
+        if (req.result) resolve(JSON.parse(req.result));
+        else resolve(null);
+      };
+      req.onerror = () => resolve(null);
+    });
+  } catch(e) { console.error('IDB load error:', e); return null; }
+}
+
+// ─── Data ───
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) appData = JSON.parse(raw);
-    // マイグレーション：ログにidがないものにidを付与
     appData.logs.forEach(l => { if (!l.id) l.id = genId(); });
     saveData();
   } catch(e) { console.error(e); }
+
+  // IndexedDBから復元を試みる（localStorageが空の場合）
+  loadFromIDB().then(idbData => {
+    if (idbData && appData.works.length === 0 && idbData.works && idbData.works.length > 0) {
+      appData = idbData;
+      appData.logs.forEach(l => { if (!l.id) l.id = genId(); });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+      render();
+      showToast('バックアップから復元しました');
+    }
+  });
 }
+
 function saveData() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
   } catch(e) { console.error(e); }
+  saveToIDB(appData);
 }
 
 // ─── State ───
@@ -1106,9 +1156,9 @@ function openAddLogModal(workId) {
     '<div class="modal-title">文字数を記録</div>' +
     '<label class="form-label">日付</label>' +
     '<input class="form-input" type="date" id="f-log-date" value="' + todayStr() + '">' +
-    '<label class="form-label">今回書いた文字数</label>' +
+    '<label class="form-label">現在の総文字数を入力</label>' +
     currentInfo +
-    '<input class="form-input" type="number" id="f-log-chars" placeholder="今回書いた文字数" oninput="updateLogPreview(' + latest + ')">' +
+    '<input class="form-input" type="number" id="f-log-chars" placeholder="累計文字数を入力" oninput="updateLogPreview(' + latest + ')">' +
     '<div id="f-log-preview" style="font-size:12px;color:var(--text2);margin-top:-8px;margin-bottom:14px"></div>' +
     '<div class="form-actions">' +
       '<button class="btn btn-ghost" onclick="closeModal()">キャンセル</button>' +
@@ -1118,25 +1168,36 @@ function openAddLogModal(workId) {
   setTimeout(function() { var el = document.getElementById('f-log-chars'); if(el) el.focus(); }, 100);
 }
 
-function updateLogPreview(currentTotal) {
+function updateLogPreview(prevTotal) {
   var val = parseInt(document.getElementById('f-log-chars')?.value) || 0;
   var preview = document.getElementById('f-log-preview');
-  if (preview && val > 0) {
-    preview.innerHTML = fmtNum(currentTotal) + ' + ' + fmtNum(val) + ' = <span style="font-weight:700;color:var(--primary)">' + fmtNum(currentTotal + val) + '文字</span>';
+  if (preview && val > 0 && prevTotal > 0) {
+    var diff = val - prevTotal;
+    if (diff > 0) {
+      preview.innerHTML = '<span style="color:var(--success);font-weight:600">+' + fmtNum(diff) + '文字</span> の増加';
+    } else if (diff < 0) {
+      preview.innerHTML = '<span style="color:var(--danger);font-weight:600">' + fmtNum(diff) + '文字</span> の減少';
+    } else {
+      preview.textContent = '変化なし';
+    }
   } else if (preview) {
     preview.textContent = '';
   }
 }
 
-function addLog(workId, currentTotal) {
+function addLog(workId, prevTotal) {
   var date = document.getElementById('f-log-date')?.value || todayStr();
-  var addedChars = parseInt(document.getElementById('f-log-chars')?.value) || 0;
-  if (addedChars <= 0) { showToast('文字数を入力してください'); return; }
+  var newTotal = parseInt(document.getElementById('f-log-chars')?.value) || 0;
+  if (newTotal <= 0) { showToast('文字数を入力してください'); return; }
 
-  var newTotal = currentTotal + addedChars;
+  var diff = newTotal - prevTotal;
   appData.logs.push({ id: genId(), workId: workId, date: date, totalChars: newTotal, episodeId: null });
   saveData(); closeModal(); render();
-  showToast('+' + fmtNum(addedChars) + '文字 → 累計' + fmtNum(newTotal) + '文字');
+  if (diff > 0) {
+    showToast('+' + fmtNum(diff) + '文字 → 累計' + fmtNum(newTotal) + '文字');
+  } else {
+    showToast('累計' + fmtNum(newTotal) + '文字で記録しました');
+  }
 }
 
 // ─── ログの編集 ───
