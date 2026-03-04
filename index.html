@@ -608,6 +608,8 @@ async function saveToGist() {
   const token = getGistToken();
   if (!token) return;
 
+  if (!appData.works || appData.works.length === 0) return;
+
   var gistId = getGistId();
   if (!gistId) {
     gistId = await findGistByFilename(token);
