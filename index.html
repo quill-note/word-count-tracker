@@ -718,7 +718,9 @@ function saveData() {
   saveDataLocal();
   var idbPayload = Object.assign({}, appData, { _gistToken: getGistToken(), _gistId: getGistId() });
   saveToIDB(idbPayload);
-  saveToGist();
+  if (appData.works.length > 0 || appData.logs.length > 0) {
+    saveToGist();
+  }
 }
 
 // ─── State ───
