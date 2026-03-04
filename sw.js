@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wct-v1';
+const CACHE_NAME = 'wct-v2';
 const URLS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -14,6 +14,9 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  if (e.request.url.includes('api.github.com')) {
+    return;
+  }
   e.respondWith(
     fetch(e.request).catch(() => caches.match(e.request))
   );
